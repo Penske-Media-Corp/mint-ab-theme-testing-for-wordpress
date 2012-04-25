@@ -3,7 +3,7 @@
  * Handles the generation of the A/B Testing
  *
  * @since 0.9.0.0
- * @version 0.9.0.8
+ * @version 0.9.0.9
  */
 class Mint_AB_Testing
 {
@@ -167,7 +167,7 @@ class Mint_AB_Testing
 	 *
 	 *
 	 * @since 0.9.0.4
-	 * @version 0.9.0.6
+	 * @version 0.9.0.9
 	 */
 	public function add_endpoint_filters() {
 		add_filter( 'the_content', array( &$this, 'rewrite_urls' ), 99 );
@@ -193,6 +193,30 @@ class Mint_AB_Testing
 
 		add_filter( 'author_link', array( &$this, 'rewrite_urls' ), 99 );
 		add_filter( 'comment_reply_link', array( &$this, 'rewrite_urls' ), 99 );
+
+		// If WordPress SEO by Yoast or pmc-seo-tweaks are active, remove the endpoint from the canonical url
+		// Not using an elseif because pmc_canonical can exist side-by-side with Yoast SEO (WPSEO_Frontend)
+		if ( class_exists('WPSEO_Frontend') ) {
+			add_filter( 'wpseo_canonical', array( &$this, 'remove_endpoint' ), 99 );
+		}
+
+		if ( function_exists('pmc_canonical') ) {
+			add_filter( 'pmc_canonical_url', array( &$this, 'remove_endpoint' ), 99 );
+		}
+	}
+
+	/**
+	 * Removed the endpoint from a url.  Only works with querystring values right now.
+	 *
+	 * @since 0.9.0.9
+	 * @version 0.9.0.9
+	 */
+	public function remove_endpoint( $url ) {
+		$options = Mint_AB_Testing_Options::instance();
+
+		$url = remove_query_arg( $options->get_option( 'endpoint' ), $url );
+
+		return $url;
 	}
 
 
