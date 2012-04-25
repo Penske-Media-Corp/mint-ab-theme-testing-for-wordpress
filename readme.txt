@@ -73,6 +73,7 @@ Once the [issue with endpoints](http://core.trac.wordpress.org/ticket/19493) is 
 
 = 0.9.0.10 =
 * Removed serverside redirection & test determination logic.  The plugin now only supports javascript redirection.
+* Fixed url example text
 * Removed explicit pass-by-reference on $this, since $this now always points to the same object
 
 = 0.9.0.9 =

@@ -229,7 +229,7 @@ class Mint_AB_Testing_Admin
 	 * Output the endpoint settings field
 	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.6
+	 * @version 0.9.0.10
 	 */
 	public function settings_field_endpoint() {
 		$options = Mint_AB_Testing_Options::instance();
@@ -237,7 +237,7 @@ class Mint_AB_Testing_Admin
 		$endpoint = $options->get_option( $settings_field_name );
 		$id = $options::option_group . '-' . $settings_field_name;
 
-		echo home_url() . '/<input name="' . $options::option_name . '[' . $settings_field_name . ']" id="' . $id . '" type="text" size="4" value="' . $endpoint . '" />/';
+		echo home_url() . '/?<input name="' . $options::option_name . '[' . $settings_field_name . ']" id="' . $id . '" type="text" size="4" value="' . $endpoint . '" />';
 		echo '<br /><span class="description">' . __( 'This identifies the alternate theme ("B" theme).	 Users who visit a URL with this at the end will see the "B" theme.', 'mint-ab-testing' ) . '</span>';
 	}
 
