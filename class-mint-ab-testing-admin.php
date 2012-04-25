@@ -3,7 +3,7 @@
  * Handles admin pages
  *
  * @since 0.9.0.3
- * @version 0.9.0.6
+ * @version 0.9.0.10
  */
 class Mint_AB_Testing_Admin
 {
@@ -36,7 +36,7 @@ class Mint_AB_Testing_Admin
 	 * Register the plugin settings with the WordPress settings API
 	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.7
+	 * @version 0.9.0.10
 	 */
 	public function register_settings() {
 		register_setting( Mint_AB_Testing_Options::option_group, Mint_AB_Testing_Options::option_name, array( &$this, 'settings_section_validate_main' ) );
@@ -51,10 +51,7 @@ class Mint_AB_Testing_Admin
 
 		add_settings_field( Mint_AB_Testing_Options::option_group . '-cookie_ttl', __( '"B" Theme TTL', 'mint-ab-testing' ), array( &$this, 'settings_field_cookie_ttl' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-javascript_redirect', __( 'Javascript Redirect', 'mint-ab-testing' ), array( &$this, 'settings_field_javascript_redirect' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
-
 		add_settings_field( Mint_AB_Testing_Options::option_group . '-entrypoints', __( 'Entry Points', 'mint-ab-testing' ), array( &$this, 'settings_field_entrypoints' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
-
 
 		add_settings_field( Mint_AB_Testing_Options::option_group . '-enable', __( 'Enable A/B Testing', 'mint-ab-testing' ), array( &$this, 'settings_field_enable' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 	}
@@ -64,10 +61,19 @@ class Mint_AB_Testing_Admin
 	 * Output the description HTML for the "Main" settings section
 	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.3
+	 * @version 0.9.0.10
 	 */
 	public function settings_section_description_main() {
-		// Doesn't do anything, I just don't want to forget it's here
+		// Additional help text for handling analytics
+		if ( class_exists('Pmc_Google_Analytics') ) {
+			$additional_help_text = __( 'It looks like you are using the PMC Google Analytics plugin.  Referrer tracking will be handled automatically.', 'mint-ab-testing' );
+		} elseif ( class_exists('Yoast_GA_Plugin_Admin') ) {
+			$additional_help_text = __( 'It looks like you are using the Google Analytics for WordPress plugin.  Referrer tracking will be handled automatically.', 'mint-ab-testing' );
+		} else {
+			$additional_help_text = __( '<br />This plugin will handle this automatically if you are using the <strong>PMC Google Analytics</strong> or <strong>Google Analytics for WordPress</strong> plugin, otherwise you will need to implement this yourself.', 'mint-ab-testing' );
+		}
+
+		echo '<span class="description">' . sprintf( __( 'Using javascript redirects with an analytics package like Google Analytics or Omniture requires some additional work to properly track referrers.  %s', 'mint-ab-testing' ), $additional_help_text ) . '</span>';
 	}
 
 
@@ -168,38 +174,10 @@ class Mint_AB_Testing_Admin
 
 
 	/**
-	 * Output javascript redirect settings field(s)
-	 *
-	 * @since 0.9.0.7
-	 * @version 0.9.0.7
-	 */
-	public function settings_field_javascript_redirect() {
-		$options = Mint_AB_Testing_Options::instance();
-		$settings_field_name = 'javascript_redirect';
-		$id = $options::option_group . '-' . $settings_field_name;
-
-		$javascript_redirect = $options->get_option( $settings_field_name );
-
-		echo '<label><input name="' . $options::option_name . '[' . $settings_field_name . ']" id="' . $id . '" type="checkbox" value="1" ' . checked( ( 1 == $javascript_redirect ), true, false ) . '/>&nbsp;' . __( 'Use Javascript to redirect to "B" theme', 'mint-ab-testing' ) . '</label><br />';
-		echo '<span class="description">' . __( 'If your page requests usually get returned from a cache (proxy caching or full page caching) you should enable this.', 'mint-ab-testing' ) . '</span>';
-
-		// Additional help text for handling analytics
-		if ( class_exists('Pmc_Google_Analytics') ) {
-			$additional_help_text = __( 'It looks like you are using the PMC Google Analytics plugin.  Referrer tracking will be handled automatically.', 'mint-ab-testing' );
-		} elseif ( class_exists('Yoast_GA_Plugin_Admin') ) {
-			$additional_help_text = __( 'It looks like you are using the Google Analytics for WordPress plugin.  Referrer tracking will be handled automatically.', 'mint-ab-testing' );
-		} else {
-			$additional_help_text = __( '<br />This plugin will handle this automatically if you are using the <strong>PMC Google Analytics</strong> or <strong>Google Analytics for WordPress</strong> plugin, otherwise you will need to implement this yourself.', 'mint-ab-testing' );
-		}
-		echo '<br /><span class="description">' . sprintf( __( 'Using javascript redirects with an analytics package like Google Analytics or Omniture requires some additional work to properly track referrers.  %s', 'mint-ab-testing' ), $additional_help_text ) . '</span>';
-	}
-
-
-	/**
 	 * Output entry point settings field(s)
 	 *
 	 * @since 0.9.0.7
-	 * @version 0.9.0.7
+	 * @version 0.9.0.10
 	 */
 	public function settings_field_entrypoints() {
 		$options = Mint_AB_Testing_Options::instance();
@@ -233,7 +211,7 @@ class Mint_AB_Testing_Admin
 
 				default:
 					// No default, has to be specified above
-					$label = '';
+					$label = $entrypoint;
 					break;
 
 			}
@@ -316,10 +294,6 @@ class Mint_AB_Testing_Admin
 
 				case 'used_endpoints':
 					$value = explode( ',', $value );
-					break;
-
-				case 'javascript_redirect':
-					$value = intval( $value );
 					break;
 
 				case 'entrypoints':

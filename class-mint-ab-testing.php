@@ -3,7 +3,7 @@
  * Handles the generation of the A/B Testing
  *
  * @since 0.9.0.0
- * @version 0.9.0.9
+ * @version 0.9.0.10
  */
 class Mint_AB_Testing
 {
@@ -63,25 +63,15 @@ class Mint_AB_Testing
 	 * that needs to run when this plugin is invoked
 	 *
 	 * @since 0.9.0.0
-	 * @version 0.9.0.8
+	 * @version 0.9.0.10
 	 */
 	public function __construct() {
 		$bln_load_alternate_functions = true;
 		if ( $this->get_can_view_alternate_theme() ) {
 			add_filter( 'request', array( &$this, 'request' ) );
 
-			$options = Mint_AB_Testing_Options::instance();
-			if ( $options->get_option( 'javascript_redirect' ) ) {
-				// Caching is enabled so use a javascript redirect
-				add_action( 'wp_head', array( &$this, 'javascript_redirect' ), 0 );
-			} else {
-				if ( ! isset( $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) ) {
-					$this->set_theme_cookie();
-				}
-
-				add_action( 'template_redirect', array( &$this, 'serverside_redirect' ) );
-			}
-
+			// Caching is enabled so use a javascript redirect
+			add_action( 'wp_head', array( &$this, 'javascript_redirect' ), 0 );
 
 			if ( $this->get_use_alternate_theme() ) {
 				add_filter( 'template', array( &$this, 'get_template' ) );
@@ -90,10 +80,9 @@ class Mint_AB_Testing
 				$this->remove_referrer_cookie();
 				$bln_load_alternate_functions = false;
 			}
-		} else {
-			$this->delete_theme_cookie();
 		}
-		if($bln_load_alternate_functions === true) {
+
+		if( $bln_load_alternate_functions === true ) {
 			//load the "B" theme's functions.php so that ajax calls, sidebars defined in the "B" theme, etc, will all work
 			$this->load_alternate_functions();
 		}
@@ -104,18 +93,14 @@ class Mint_AB_Testing
 	 *
 	 *
 	 * @since 0.9.0.7
-	 * @version 0.9.0.7
+	 * @version 0.9.0.10
 	 */
 	public function remove_referrer_cookie() {
-		$options = Mint_AB_Testing_Options::instance();
-		if ( $options->get_option( 'javascript_redirect' ) ) {
-			if ( class_exists('Pmc_Google_Analytics') ) {
-				add_filter( 'pmc_google_analytics_pre_trackpageview', array(&$this, 'javascript_track_referrer') );
-			} elseif ( class_exists('Yoast_GA_Plugin_Admin') ) {
-				add_filter( 'option_Yoast_Google_Analytics', array(&$this, 'javascript_track_referrer') );
-			}
+		if ( class_exists('Pmc_Google_Analytics') ) {
+			add_filter( 'pmc_google_analytics_pre_trackpageview', array(&$this, 'javascript_track_referrer') );
+		} elseif ( class_exists('Yoast_GA_Plugin_Admin') ) {
+			add_filter( 'option_Yoast_Google_Analytics', array(&$this, 'javascript_track_referrer') );
 		}
-
 	}
 
 
@@ -333,52 +318,11 @@ class Mint_AB_Testing
 
 
 	/**
-	 * Determine if the redirect is necessary, and then perform the redirect.
-	 * To see the "B" theme, user must meet the following criteria:
-	 * - Plugin is turned on
-	 * - User has landed on a valid entrypoint
-	 *   OR has an existing "B" theme cookie
-	 * - User has "won the lottery" to see the "B" theme
-	 *   OR has landed on a "B" theme URL and does not yet have a cookie
-	 *
-	 * Note the serverside redirect and javascript redirect methods are slightly different
-	 * in syntax; the javascript method of has_cookie() is different than the php class
-	 * method has_cookie() for example.
-	 *
-	 * @since 0.9.0.1
-	 * @version 0.9.0.9
-	 */
-	public function serverside_redirect() {
-		if ( $this->get_use_alternate_theme() && false === $this->has_endpoint() ) {
-			// If not a valid entry point and cookie isn't set yet, set the A theme cookie
-			// and don't redirect
-			if ( false === $this->is_valid_entrypoint() && false === $this->has_cookie() ) {
-				$this->set_theme_cookie();
-			} else {
-				// Only redirect if it's a valid entrypoint, testing is turned on, there's no endpoint on the current page already, and the user has passed all tests to get a "B" theme cookie
-				$alternate_theme_uri = $this->add_endpoint_to_url( $_SERVER['REQUEST_URI'] );
-
-				wp_safe_redirect( $alternate_theme_uri );
-
-				die();
-			}
-		} elseif ( $this->has_endpoint() && ! isset( $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) ) {
-			// Landed on "B" URL, set cookie
-			$this->set_theme_cookie();
-		}
-	}
-
-
-	/**
 	 * Output javascript in the header to test for alternate theme use and redirect to the
 	 * alternate theme, if necessary.
 	 *
-	 * Note the serverside redirect and javascript redirect methods are slightly different
-	 * in syntax; the javascript method of has_cookie() is different than the php class
-	 * method has_cookie() for example.
-	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.9
+	 * @version 0.9.0.10
 	 */
 	public function javascript_redirect() {
 		$options = Mint_AB_Testing_Options::instance();
@@ -390,17 +334,17 @@ class Mint_AB_Testing
 			referrer_cookie_name: "<?php echo Mint_AB_Testing_Options::referrer_cookie_name; ?>",
 			cookie_name: "<?php echo Mint_AB_Testing_Options::cookie_name; ?>",
 			endpoint: "<?php echo $options->get_option( 'endpoint' ); ?>",
-			_has_endpoint: null,
+			_has_endpoint: <?php echo (isset($_GET[$options->get_option( 'endpoint' )])) ? 'true' : 'false'; ?>,
 			_is_valid_entrypoint: <?php echo ($this->is_valid_entrypoint() ? 'true' : 'false'); ?>,
 
 			run: function() {
-				if ( this.has_endpoint() && this.use_alternate_theme() ) {
+				if ( this._has_endpoint && this.use_alternate_theme() ) {
 					return;
-				} else if ( false == this.has_endpoint() && this.use_alternate_theme() ) {
+				} else if ( false == this._has_endpoint && this.use_alternate_theme() ) {
 					// use_alternate_theme() sets the cookie so we don't need to do it here, just redirect
 					<?php
 					// Set the referrer cookie if doing a javascript redirect & GA is enabled
-					if ( $options->get_option( 'javascript_redirect' ) && ( class_exists('Pmc_Google_Analytics') ||  class_exists('Yoast_GA_Plugin_Admin') ) ) {
+					if ( class_exists('Pmc_Google_Analytics') ||  class_exists('Yoast_GA_Plugin_Admin') ) {
 						?>
 						this.set_referrer_cookie();
 						<?php
@@ -408,10 +352,10 @@ class Mint_AB_Testing
 					?>
 
 					this.do_redirect();
-				} else if ( this.has_endpoint() && false === this.has_cookie() ) {
+				} else if ( this._has_endpoint && false === this.has_cookie() ) {
 					// If the user landed on "B" theme, keep them there
 					this.set_cookie( true, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
-				} else if ( false == this.has_endpoint && false == this.has_cookie ) {
+				} else if ( false == this._has_endpoint && false == this.has_cookie ) {
 					// None of the "B" theme criteria were reached, keep user on "A" theme
 					this.set_cookie( false, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
 				}
@@ -438,18 +382,6 @@ class Mint_AB_Testing
 				document.location.search = params.join("&");
 			},
 
-			has_endpoint: function() {
-				if ( null == this._has_endpoint ) {
-					// Check for querystring param
-					// Also converts _has_endpoint from null to bool
-					var regex = new RegExp("[\\?&]" + this.endpoint + "(|([\=\?#&].*))$");
-
-					this._has_endpoint = regex.test(window.location.href);
-				}
-
-				return this._has_endpoint;
-			},
-
 			has_cookie: function() {
 				if ( document.cookie.length > 0 && document.cookie.indexOf( this.cookie_name + "=" ) > -1 ) {
 					return true;
@@ -471,11 +403,11 @@ class Mint_AB_Testing
 
 				var use_alternate_theme = false;
 
-				if ( this._is_valid_entrypoint && false == this.has_endpoint() ) {
+				if ( this._is_valid_entrypoint && false == this._has_endpoint ) {
 					if ( Math.floor( Math.random()*101 ) < <?php echo $options->get_option( 'ratio' ); ?> ) {
 						use_alternate_theme = true;
 					}
-				} else if ( this._is_valid_entrypoint && this.has_endpoint() ) {
+				} else if ( this._is_valid_entrypoint && this._has_endpoint ) {
 					use_alternate_theme = true;
 				}
 				this.set_cookie( use_alternate_theme, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
@@ -530,7 +462,7 @@ class Mint_AB_Testing
 	 *
 	 *
 	 * @since 0.9.0.0
-	 * @version 0.9.0.6
+	 * @version 0.9.0.10
 	 */
 	public function get_use_alternate_theme() {
 		if ( is_null( $this->_use_alternate_theme ) ) {
@@ -538,8 +470,7 @@ class Mint_AB_Testing
 
 			$options = Mint_AB_Testing_Options::instance();
 
-			$conditions_met = ( $this->has_endpoint() && ( $this->has_cookie() || $this->won_lottery() ) );
-			if ( $this->has_endpoint() || $conditions_met ) {
+			if ( $this->has_endpoint() ) {
 				$alternate_theme = get_theme( $options->get_option( 'alternate_theme' ) );
 
 				if ( ! is_null( $alternate_theme ) ) {
@@ -626,81 +557,6 @@ class Mint_AB_Testing
 		}
 
 		return $this->_has_endpoint;
-	}
-
-
-	/**
-	 *
-	 *
-	 * @since 0.9.0.0
-	 * @version 0.9.0.6
-	 */
-	public function has_cookie() {
-		if ( isset( $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) && 'true' === $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) {
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 *
-	 *
-	 * @since 0.9.0.0
-	 * @version 0.9.0.6
-	 */
-	public function won_lottery() {
-		$options = Mint_AB_Testing_Options::instance();
-		if ( ! isset( $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) && rand( 0, 100 ) < $options->get_option( 'ratio' ) ) {
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 *
-	 *
-	 * @since 0.9.0.0
-	 * @version 0.9.0.9
-	 */
-	public function set_theme_cookie() {
-		// If the user landed on "B" theme, keep them there
-		if ( $this->has_endpoint() ) {
-			$cookie_value = 'true';
-		} else {
-			// If the user doesn't land on a valid entrypoint, keep them on the "A" theme
-			// Otherwise test for user_alternate_theme
-			if ( ! $this->is_valid_entrypoint() ) {
-				$cookie_value = 'false';
-			} else {
-				// To get here, user
-				$cookie_value = ( $this->get_use_alternate_theme() ) ? 'true' : 'false';
-			}
-		}
-
-		$options = Mint_AB_Testing_Options::instance();
-
-		$cookie_expiry = $options->get_option( 'cookie_ttl' );
-
-		if ( $cookie_expiry > 0 ) {
-			$cookie_expiry = time() + $cookie_expiry;
-		}
-
-		setcookie( Mint_AB_Testing_Options::cookie_name, $cookie_value, $cookie_expiry, COOKIEPATH, COOKIE_DOMAIN );
-	}
-
-
-	/**
-	 *
-	 *
-	 * @since 0.9.0.0
-	 * @version 0.9.0.3
-	 */
-	public function delete_theme_cookie() {
-		setcookie( Mint_AB_Testing_Options::cookie_name, 'false', 266165580, COOKIEPATH, COOKIE_DOMAIN );
 	}
 
 

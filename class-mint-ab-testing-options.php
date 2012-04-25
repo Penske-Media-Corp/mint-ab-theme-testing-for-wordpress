@@ -3,7 +3,7 @@
  * Handles get/set of plugin options and WordPress options page
  *
  * @since 0.9.0.0
- * @version 0.9.0.7
+ * @version 0.9.0.10
  */
 class Mint_AB_Testing_Options
 {
@@ -67,7 +67,7 @@ class Mint_AB_Testing_Options
 	 * Contains default options that get overridden in the constructor
 	 *
 	 * @since 0.9.0.0
-	 * @version 0.9.0.7
+	 * @version 0.9.0.10
 	 *
 	 * @var array
 	 */
@@ -77,7 +77,6 @@ class Mint_AB_Testing_Options
 		'alternate_theme' => 'Twenty Ten',
 		'cookie_ttl' => 0,
 		'endpoint' => 'v02',
-		'javascript_redirect' => 0,
 		'entrypoints' => array(
 			'home' => true,
 			'singular' => true, // post, page, attachment, custom post type
@@ -116,10 +115,21 @@ class Mint_AB_Testing_Options
 	 * Merge the saved options with the defaults
 	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.6
+	 * @version 0.9.0.10
 	 */
 	protected function _setup_options() {
-		$this->_options = array_merge( $this->_options_defaults, get_option( self::option_name, array() ) );
+    	$stored_options = get_option( self::option_name, array() );
+
+		// If there are no stored options, create them now based on the defaults
+		// This prevents an issue where the the option is not stored because the user is
+		// using the defaults, thus it is not included in WP's autoload and WP will end up
+		// querying this option on every page load.
+		if ( ! $stored_options ) {
+			update_option( self::option_name, $this->_options_defaults );
+			$this->_options = $this->_options_defaults;
+		} else {
+			$this->_options = wp_parse_args( $stored_options, $this->_options_defaults );
+		}
 	}
 
 

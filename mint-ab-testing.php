@@ -3,8 +3,8 @@
 Plugin Name: Mint A/B Theme Testing for WordPress
 Plugin URI: https://github.com/mintindeed/mint-ab-theme-testing-for-wordpress
 Description: Generates a A/B Testing on the fly.
-Version: 0.9.0.9
-Author: Gabriel Koen
+Version: 0.9.0.10
+Author: Gabriel Koen, Vicky Biswas, Amit Gupta, PMC
 Author URI: http://gabrielkoen.com/
 License: GPLv2
 */

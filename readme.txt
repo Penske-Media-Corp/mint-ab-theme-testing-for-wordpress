@@ -2,8 +2,8 @@
 Contributors: mintindeed
 Tags: a/b testing, alternate theme
 Requires at least: 3.2
-Tested up to: 3.3.1
-Stable tag: 0.9.0.8
+Tested up to: 3.4
+Stable tag: 0.9.0.10
 
 Do A/B testing for your WordPress site design or layout.
 
@@ -70,6 +70,19 @@ Once the [issue with endpoints](http://core.trac.wordpress.org/ticket/19493) is 
 2. A/B test example
 
 == Changelog ==
+
+= 0.9.0.10 =
+* Removed serverside redirection & test determination logic.  The plugin now only supports javascript redirection.
+
+= 0.9.0.9 =
+* Chance to view the "B" theme was off by 1%
+* 'B' theme functions.php included even if setting is off
+* Adding support for Google Analytics referrer tracking when using javascript redirect, and option to only run the test when the user comes form a valid entry point.
+* If WordPress SEO by Yoast or pmc-seo-tweaks are active, remove the endpoint from the canonical url
+* Fixing A/B redirect logic. Removing bug that caused AB testing JS to run twice.
+
+= 0.9.0.8 =
+* Load alternate theme's functions.php so that ajax calls, sidebars defined in the "B" theme, etc, will all work. This works slightly differently than expected if you are loading a child theme: normally a child theme's functions.php is loaded before the parent theme's, but we are forced to load it afterwards here because we don't have access to any actions before "after_setup_theme" on VIP.
 
 = 0.9.0.7 =
 * Initial release.
