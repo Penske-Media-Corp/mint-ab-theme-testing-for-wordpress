@@ -334,22 +334,36 @@ class Mint_AB_Testing
 
 	/**
 	 * Determine if the redirect is necessary, and then perform the redirect.
+	 * To see the "B" theme, user must meet the following criteria:
+	 * - Plugin is turned on
+	 * - User has landed on a valid entrypoint
+	 *   OR has an existing "B" theme cookie
+	 * - User has "won the lottery" to see the "B" theme
+	 *   OR has landed on a "B" theme URL and does not yet have a cookie
 	 *
 	 * Note the serverside redirect and javascript redirect methods are slightly different
 	 * in syntax; the javascript method of has_cookie() is different than the php class
 	 * method has_cookie() for example.
 	 *
 	 * @since 0.9.0.1
-	 * @version 0.9.0.6
+	 * @version 0.9.0.9
 	 */
 	public function serverside_redirect() {
 		if ( $this->get_use_alternate_theme() && false === $this->has_endpoint() ) {
-			$alternate_theme_uri = $this->add_endpoint_to_url( $_SERVER['REQUEST_URI'] );
+			// If not a valid entry point and cookie isn't set yet, set the A theme cookie
+			// and don't redirect
+			if ( false === $this->is_valid_entrypoint() && false === $this->has_cookie() ) {
+				$this->set_theme_cookie();
+			} else {
+				// Only redirect if it's a valid entrypoint, testing is turned on, there's no endpoint on the current page already, and the user has passed all tests to get a "B" theme cookie
+				$alternate_theme_uri = $this->add_endpoint_to_url( $_SERVER['REQUEST_URI'] );
 
-			wp_safe_redirect( $alternate_theme_uri );
+				wp_safe_redirect( $alternate_theme_uri );
 
-			die();
+				die();
+			}
 		} elseif ( $this->has_endpoint() && ! isset( $_COOKIE[Mint_AB_Testing_Options::cookie_name] ) ) {
+			// Landed on "B" URL, set cookie
 			$this->set_theme_cookie();
 		}
 	}
@@ -364,7 +378,7 @@ class Mint_AB_Testing
 	 * method has_cookie() for example.
 	 *
 	 * @since 0.9.0.3
-	 * @version 0.9.0.7
+	 * @version 0.9.0.9
 	 */
 	public function javascript_redirect() {
 		$options = Mint_AB_Testing_Options::instance();
@@ -380,27 +394,26 @@ class Mint_AB_Testing
 			_is_valid_entrypoint: <?php echo ($this->is_valid_entrypoint() ? 'true' : 'false'); ?>,
 
 			run: function() {
-				// If not a valid entry point, bail early
-				if ( ! this._is_valid_entrypoint ) {
-					if ( false === this.has_cookie() ) {
-						this.set_cookie( false, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
-					}
+				if ( this.has_endpoint() && this.use_alternate_theme() ) {
 					return;
-				}
-
-				if ( false == this.has_endpoint() && this.use_alternate_theme() ) {
+				} else if ( false == this.has_endpoint() && this.use_alternate_theme() ) {
+					// use_alternate_theme() sets the cookie so we don't need to do it here, just redirect
 					<?php
-					// Set the referrer cookie if doing a javascript redirect
+					// Set the referrer cookie if doing a javascript redirect & GA is enabled
 					if ( $options->get_option( 'javascript_redirect' ) && ( class_exists('Pmc_Google_Analytics') ||  class_exists('Yoast_GA_Plugin_Admin') ) ) {
 						?>
 						this.set_referrer_cookie();
 						<?php
 					}
 					?>
+
 					this.do_redirect();
 				} else if ( this.has_endpoint() && false === this.has_cookie() ) {
 					// If the user landed on "B" theme, keep them there
 					this.set_cookie( true, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
+				} else if ( false == this.has_endpoint && false == this.has_cookie ) {
+					// None of the "B" theme criteria were reached, keep user on "A" theme
+					this.set_cookie( false, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
 				}
 			},
 
@@ -428,6 +441,7 @@ class Mint_AB_Testing
 			has_endpoint: function() {
 				if ( null == this._has_endpoint ) {
 					// Check for querystring param
+					// Also converts _has_endpoint from null to bool
 					var regex = new RegExp("[\\?&]" + this.endpoint + "(|([\=\?#&].*))$");
 
 					this._has_endpoint = regex.test(window.location.href);
@@ -457,12 +471,13 @@ class Mint_AB_Testing
 
 				var use_alternate_theme = false;
 
-				if ( false == this.has_endpoint() ) {
+				if ( this._is_valid_entrypoint && false == this.has_endpoint() ) {
 					if ( Math.floor( Math.random()*101 ) < <?php echo $options->get_option( 'ratio' ); ?> ) {
 						use_alternate_theme = true;
 					}
+				} else if ( this._is_valid_entrypoint && this.has_endpoint() ) {
+					use_alternate_theme = true;
 				}
-
 				this.set_cookie( use_alternate_theme, <?php echo $options->get_option( 'cookie_ttl' ); ?> );
 
 				return use_alternate_theme;
@@ -649,17 +664,21 @@ class Mint_AB_Testing
 	 *
 	 *
 	 * @since 0.9.0.0
-	 * @version 0.9.0.7
+	 * @version 0.9.0.9
 	 */
 	public function set_theme_cookie() {
-		// If the user doesn't land on a valid entrypoint, keep them on the "A" theme
 		// If the user landed on "B" theme, keep them there
-		if ( ! $this->is_valid_entrypoint() ) {
-			$cookie_value = 'false';
-		} elseif ( $this->has_endpoint() ) {
+		if ( $this->has_endpoint() ) {
 			$cookie_value = 'true';
 		} else {
-			$cookie_value = ( $this->get_use_alternate_theme() ) ? 'true' : 'false';
+			// If the user doesn't land on a valid entrypoint, keep them on the "A" theme
+			// Otherwise test for user_alternate_theme
+			if ( ! $this->is_valid_entrypoint() ) {
+				$cookie_value = 'false';
+			} else {
+				// To get here, user
+				$cookie_value = ( $this->get_use_alternate_theme() ) ? 'true' : 'false';
+			}
 		}
 
 		$options = Mint_AB_Testing_Options::instance();

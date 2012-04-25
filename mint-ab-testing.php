@@ -3,7 +3,7 @@
 Plugin Name: Mint A/B Theme Testing for WordPress
 Plugin URI: https://github.com/mintindeed/mint-ab-theme-testing-for-wordpress
 Description: Generates a A/B Testing on the fly.
-Version: 0.9.0.8
+Version: 0.9.0.9
 Author: Gabriel Koen
 Author URI: http://gabrielkoen.com/
 License: GPLv2
@@ -22,10 +22,12 @@ add_action( 'plugins_loaded', 'mint_ab_testing_admin_loader', 11 );
  * For loading Mint_AB_Testing via WordPress action
  *
  * @since 0.9.0.0
- * @version 0.9.0.8
+ * @version 0.9.0.9
  */
 function mint_ab_testing_loader() {
-	new Mint_AB_Testing();
+	if ( ! isset($GLOBALS['mint_ab_testing']) ) {
+		$GLOBALS['mint_ab_testing'] = new Mint_AB_Testing();
+	}
 }
 
 
@@ -33,11 +35,11 @@ function mint_ab_testing_loader() {
  * For loading Mint_AB_Testing_Admin via WordPress action
  *
  * @since 0.9.0.3
- * @version 0.9.0.6
+ * @version 0.9.0.9
  */
 function mint_ab_testing_admin_loader() {
-	if ( is_admin() ) {
-		new Mint_AB_Testing_Admin();
+	if ( is_admin() && ! isset($GLOBALS['mint_ab_testing_admin']) ) {
+		$GLOBALS['mint_ab_testing_admin'] = new Mint_AB_Testing_Admin();
 	}
 }
 
@@ -46,10 +48,12 @@ function mint_ab_testing_admin_loader() {
  * For loading Mint_AB_Testing_Options via WordPress action
  *
  * @since 0.9.0.0
- * @version 0.9.0.6
+ * @version 0.9.0.9
  */
 function mint_ab_testing_options_loader() {
-	Mint_AB_Testing_Options::instance();
+	if ( ! isset($GLOBALS['mint_ab_testing_options']) ) {
+		$GLOBALS['mint_ab_testing_options'] = Mint_AB_Testing_Options::instance();
+	}
 }
 
 
