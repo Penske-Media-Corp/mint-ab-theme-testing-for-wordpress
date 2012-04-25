@@ -68,14 +68,14 @@ class Mint_AB_Testing
 	public function __construct() {
 		$bln_load_alternate_functions = true;
 		if ( $this->get_can_view_alternate_theme() ) {
-			add_filter( 'request', array( &$this, 'request' ) );
+			add_filter( 'request', array( $this, 'request' ) );
 
 			// Caching is enabled so use a javascript redirect
-			add_action( 'wp_head', array( &$this, 'javascript_redirect' ), 0 );
+			add_action( 'wp_head', array( $this, 'javascript_redirect' ), 0 );
 
 			if ( $this->get_use_alternate_theme() ) {
-				add_filter( 'template', array( &$this, 'get_template' ) );
-				add_filter( 'stylesheet', array( &$this, 'get_stylesheet' ) );
+				add_filter( 'template', array( $this, 'get_template' ) );
+				add_filter( 'stylesheet', array( $this, 'get_stylesheet' ) );
 				$this->add_endpoint_filters();
 				$this->remove_referrer_cookie();
 				$bln_load_alternate_functions = false;
@@ -97,9 +97,9 @@ class Mint_AB_Testing
 	 */
 	public function remove_referrer_cookie() {
 		if ( class_exists('Pmc_Google_Analytics') ) {
-			add_filter( 'pmc_google_analytics_pre_trackpageview', array(&$this, 'javascript_track_referrer') );
+			add_filter( 'pmc_google_analytics_pre_trackpageview', array($this, 'javascript_track_referrer') );
 		} elseif ( class_exists('Yoast_GA_Plugin_Admin') ) {
-			add_filter( 'option_Yoast_Google_Analytics', array(&$this, 'javascript_track_referrer') );
+			add_filter( 'option_Yoast_Google_Analytics', array($this, 'javascript_track_referrer') );
 		}
 	}
 
@@ -155,38 +155,38 @@ class Mint_AB_Testing
 	 * @version 0.9.0.9
 	 */
 	public function add_endpoint_filters() {
-		add_filter( 'the_content', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'get_the_excerpt', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'get_the_author_url', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'wp_nav_menu', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'the_content', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'get_the_excerpt', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'get_the_author_url', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'wp_nav_menu', array( $this, 'rewrite_urls' ), 99 );
 
-		add_filter( 'widget_text', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'widget_text', array( $this, 'rewrite_urls' ), 99 );
 
-		add_filter( 'post_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'page_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'post_type_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'attachment_link', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'post_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'page_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'post_type_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'attachment_link', array( $this, 'rewrite_urls' ), 99 );
 
-		add_filter( 'get_comments_pagenum_link', array( &$this, 'fix_url_syntax' ), 99 );
+		add_filter( 'get_comments_pagenum_link', array( $this, 'fix_url_syntax' ), 99 );
 
-		add_filter( 'category_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'tag_link', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'category_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'tag_link', array( $this, 'rewrite_urls' ), 99 );
 
-		add_filter( 'day_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'month_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'year_link', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'day_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'month_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'year_link', array( $this, 'rewrite_urls' ), 99 );
 
-		add_filter( 'author_link', array( &$this, 'rewrite_urls' ), 99 );
-		add_filter( 'comment_reply_link', array( &$this, 'rewrite_urls' ), 99 );
+		add_filter( 'author_link', array( $this, 'rewrite_urls' ), 99 );
+		add_filter( 'comment_reply_link', array( $this, 'rewrite_urls' ), 99 );
 
 		// If WordPress SEO by Yoast or pmc-seo-tweaks are active, remove the endpoint from the canonical url
 		// Not using an elseif because pmc_canonical can exist side-by-side with Yoast SEO (WPSEO_Frontend)
 		if ( class_exists('WPSEO_Frontend') ) {
-			add_filter( 'wpseo_canonical', array( &$this, 'remove_endpoint' ), 99 );
+			add_filter( 'wpseo_canonical', array( $this, 'remove_endpoint' ), 99 );
 		}
 
 		if ( function_exists('pmc_canonical') ) {
-			add_filter( 'pmc_canonical_url', array( &$this, 'remove_endpoint' ), 99 );
+			add_filter( 'pmc_canonical_url', array( $this, 'remove_endpoint' ), 99 );
 		}
 	}
 

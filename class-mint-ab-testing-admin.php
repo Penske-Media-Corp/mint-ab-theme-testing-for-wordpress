@@ -16,8 +16,8 @@ class Mint_AB_Testing_Admin
 	 * @version 0.9.0.6
 	 */
 	public function __construct() {
-		add_action( 'admin_menu', array( &$this,'admin_menu' ) );
-		add_action( 'admin_init', array( &$this,'register_settings' ) );
+		add_action( 'admin_menu', array( $this,'admin_menu' ) );
+		add_action( 'admin_init', array( $this,'register_settings' ) );
 	}
 
 
@@ -28,7 +28,7 @@ class Mint_AB_Testing_Admin
 	 * @version 0.9.0.6
 	 */
 	public function admin_menu() {
-		add_theme_page( __( 'A/B Testing Configuration', 'mint-ab-testing' ), __( 'A/B Testing', 'mint-ab-testing' ), 'manage_options', Mint_AB_Testing_Options::plugin_id, array( &$this, 'settings_page' ) );
+		add_theme_page( __( 'A/B Testing Configuration', 'mint-ab-testing' ), __( 'A/B Testing', 'mint-ab-testing' ), 'manage_options', Mint_AB_Testing_Options::plugin_id, array( $this, 'settings_page' ) );
 	}
 
 
@@ -39,21 +39,21 @@ class Mint_AB_Testing_Admin
 	 * @version 0.9.0.10
 	 */
 	public function register_settings() {
-		register_setting( Mint_AB_Testing_Options::option_group, Mint_AB_Testing_Options::option_name, array( &$this, 'settings_section_validate_main' ) );
+		register_setting( Mint_AB_Testing_Options::option_group, Mint_AB_Testing_Options::option_name, array( $this, 'settings_section_validate_main' ) );
 
-		add_settings_section( Mint_AB_Testing_Options::plugin_id . '-main', __( 'Main Settings', 'mint-ab-testing' ), array( &$this, 'settings_section_description_main' ), Mint_AB_Testing_Options::plugin_id );
+		add_settings_section( Mint_AB_Testing_Options::plugin_id . '-main', __( 'Main Settings', 'mint-ab-testing' ), array( $this, 'settings_section_description_main' ), Mint_AB_Testing_Options::plugin_id );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-endpoint', __( '"B" Theme URL Endpoint', 'mint-ab-testing' ), array( &$this, 'settings_field_endpoint' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-endpoint', __( '"B" Theme URL Endpoint', 'mint-ab-testing' ), array( $this, 'settings_field_endpoint' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-alternate_theme', __( 'Theme Select', 'mint-ab-testing' ), array( &$this, 'settings_field_alternate_theme' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-alternate_theme', __( 'Theme Select', 'mint-ab-testing' ), array( $this, 'settings_field_alternate_theme' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-ratio', __( 'Ratio', 'mint-ab-testing' ), array( &$this, 'settings_field_ratio' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-ratio', __( 'Ratio', 'mint-ab-testing' ), array( $this, 'settings_field_ratio' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-cookie_ttl', __( '"B" Theme TTL', 'mint-ab-testing' ), array( &$this, 'settings_field_cookie_ttl' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-cookie_ttl', __( '"B" Theme TTL', 'mint-ab-testing' ), array( $this, 'settings_field_cookie_ttl' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-entrypoints', __( 'Entry Points', 'mint-ab-testing' ), array( &$this, 'settings_field_entrypoints' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-entrypoints', __( 'Entry Points', 'mint-ab-testing' ), array( $this, 'settings_field_entrypoints' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 
-		add_settings_field( Mint_AB_Testing_Options::option_group . '-enable', __( 'Enable A/B Testing', 'mint-ab-testing' ), array( &$this, 'settings_field_enable' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
+		add_settings_field( Mint_AB_Testing_Options::option_group . '-enable', __( 'Enable A/B Testing', 'mint-ab-testing' ), array( $this, 'settings_field_enable' ), Mint_AB_Testing_Options::plugin_id, Mint_AB_Testing_Options::plugin_id . '-main' );
 	}
 
 
