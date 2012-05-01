@@ -83,8 +83,10 @@ class Mint_AB_Testing
 		}
 
 		if( $bln_load_alternate_functions === true ) {
-			//load the "B" theme's functions.php so that ajax calls, sidebars defined in the "B" theme, etc, will all work
-			$this->load_alternate_functions();
+			//load the "B" theme's functions.php so that ajax calls, sidebars defined in the "B" theme, etc, will all work in the admin & when doing ajax calls
+			if ( is_admin() || defined('DOING_AJAX') && DOING_AJAX ) {
+				$this->load_alternate_functions();
+			}
 		}
 	}
 
